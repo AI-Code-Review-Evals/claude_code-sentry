@@ -9,9 +9,18 @@ on:
     #   - "src/**/*.tsx"
     #   - "src/**/*.js"
     #   - "src/**/*.jsx"
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
 
 jobs:
   claude-review:
+    # Run on PR events or when @review-claude is mentioned in comments
+    if: |
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@review-claude')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@review-claude'))
     # Optional: Filter by PR author
     # if: |
     #   github.event.pull_request.user.login == 'external-contributor' ||
@@ -48,6 +57,13 @@ jobs:
             - Test coverage
 
             Use the repository's CLAUDE.md for guidance on style and conventions. Be constructive and helpful in your feedback.
+
+            IMPORTANT: Format your review comments in the following structure:
+            Line: [line_number], File: [file_path], Comment: [your_comment]
+
+            For example:
+            Line: 42, File: src/utils/helper.py, Comment: Consider using a more descriptive variable name instead of 'x'
+            Line: 15, File: tests/test_api.py, Comment: This test case should also verify the error message content
 
             Use `gh pr comment` with your Bash tool to leave your review as a comment on the PR.
 
